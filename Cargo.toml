@@ -1,0 +1,17 @@
+[package]
+name = "async-lisp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lisperror = { path = "crates/lisperror" }
+lisptype = { path = "crates/lisptype" }
+lispenv = { path = "crates/lispenv" }
+bidirchannel = { path = "crates/bidirchannel" }
+
+[workspace]
+members = [
+    "crates/lisperror",
+    "crates/lisptype",
+    "crates/lispenv",
+]
