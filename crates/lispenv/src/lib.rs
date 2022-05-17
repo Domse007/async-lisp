@@ -3,11 +3,11 @@ mod threadmessage;
 mod worker;
 
 use std::collections::HashMap;
-use std::thread::{self, JoinHandle};
 
+use bidirchannel::ComServer;
 use lisptype::lisptype::LispType;
 use lisptype::LispFn;
-use threadmessage::ThreadMessage;
+use threadmessage::{EnvToThreadMessage, ThreadToEnvMessage};
 use worker::Worker;
 
 pub struct NumWorkers {
@@ -27,6 +27,7 @@ impl NumWorkers {
 pub struct LispEnvironment {
     globals: HashMap<String, LispType>,
     functions: HashMap<String, LispFn>,
+    com_server: ComServer<EnvToThreadMessage, ThreadToEnvMessage>,
     workers: Vec<Worker>,
     num_workers: u32,
 }
@@ -36,6 +37,7 @@ impl LispEnvironment {
         Self {
             globals: HashMap::new(),
             functions: HashMap::new(),
+            com_server: ComServer::new(),
             workers: vec![],
             num_workers: num_workers.num,
         }
@@ -51,27 +53,26 @@ impl LispEnvironment {
 
     pub fn run<T: ToString>(&mut self, init_fn: T) {
         for _ in 0..self.num_workers {
-            self.workers.push(Worker::new());
+            self.workers.push(Worker::new(self.com_server.new_client()));
         }
 
         loop {
-            for worker in self.workers.iter() {
-                match worker.try_recv() {
-                    Some(instr) => match instr {
-                        ThreadMessage::GetVal(name) => worker
-                            .send(ThreadMessage::ReturnRequestedGlobal(
-                                self.globals.get(name.as_str()).cloned(),
-                            ))
-                            .unwrap(), // can safely unwrap here, becuase the thread is waiting.
-                        ThreadMessage::Call(fn_name) => worker
-                            .send(ThreadMessage::ReturnCall(
-                                self.functions.get(fn_name.as_str()).cloned(),
-                            ))
-                            .unwrap(),
-                        _ => unimplemented!(),
-                    },
-                    None => {}
+            let msg = self.com_server.recv();
+
+            match msg.get_message() {
+                ThreadToEnvMessage::GetVal(name) => {
+                    self.com_server
+                        .send(msg.answer(EnvToThreadMessage::ReturnRequestedGlobal(
+                            self.globals.get(name.as_str()).cloned(),
+                        )))
                 }
+                ThreadToEnvMessage::Call(fn_name) => {
+                    self.com_server
+                        .send(msg.answer(EnvToThreadMessage::ReturnCall(
+                            self.functions.get(fn_name.as_str()).cloned(),
+                        )))
+                }
+                _ => unimplemented!(),
             }
 
             let not_working = self.workers.iter().filter(|e| e.is_busy()).count();
@@ -80,6 +81,11 @@ impl LispEnvironment {
             }
         }
 
+        self.shutdown();
+    }
+
+    pub fn shutdown(&mut self) {
+        self.com_server.announce(EnvToThreadMessage::Shutdown);
         while let Some(worker) = self.workers.pop() {
             worker.shutdown();
         }

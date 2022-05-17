@@ -1,13 +1,16 @@
 use lisptype::lisptype::LispType;
 use lisptype::LispFn;
 
-pub enum ThreadMessage {
-    // Env to Thread
+#[derive(Clone)]
+pub enum EnvToThreadMessage {
     Shutdown,
     Eval(LispType),
     ReturnRequestedGlobal(Option<LispType>),
     ReturnCall(Option<LispFn>),
-    // Thread to Env
+}
+
+#[derive(Clone)]
+pub enum ThreadToEnvMessage {
     GetVal(String),
     Call(String),
     ReturnVal(LispType),

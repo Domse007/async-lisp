@@ -1,11 +1,11 @@
-use bidirchannel::BiDirChannel;
+use bidirchannel::ComClient;
 
-use crate::threadmessage::ThreadMessage;
+use crate::threadmessage::{EnvToThreadMessage, ThreadToEnvMessage};
 
-pub fn run(endp: BiDirChannel<ThreadMessage>) {
+pub fn run(endp: ComClient<EnvToThreadMessage, ThreadToEnvMessage>) {
     loop {
         match endp.recv() {
-            ThreadMessage::Shutdown => return,
+            EnvToThreadMessage::Shutdown => break,
             _ => unreachable!(),
         }
     }
