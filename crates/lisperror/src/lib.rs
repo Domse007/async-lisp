@@ -8,17 +8,17 @@ pub struct LispError {
 }
 
 impl LispError {
-    pub fn invalid_type<T: ToString>(ltype: T, value: T) -> Self {
+    pub fn invalid_type(exp: impl ToString, got: impl ToString) -> Self {
         Self {
             error_type: ErrorType::InvalidType {
-                exp: ltype.to_string(),
-                got: value.to_string(),
+                exp: exp.to_string(),
+                got: got.to_string(),
             },
             error_msg: None,
         }
     }
 
-    pub fn wrong_number_of_args<T: ToString>(fn_name: T, got: u32, wanted: u32) -> Self {
+    pub fn wrong_number_of_args<T: ToString>(fn_name: T, got: usize, wanted: usize) -> Self {
         Self {
             error_type: ErrorType::WrongNumberOfArgs {
                 fn_name: fn_name.to_string(),
@@ -54,8 +54,8 @@ pub enum ErrorType {
     },
     WrongNumberOfArgs {
         fn_name: String,
-        arguments_got: u32,
-        arguments_required: u32,
+        arguments_got: usize,
+        arguments_required: usize,
     },
 }
 

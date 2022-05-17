@@ -10,17 +10,19 @@ use lisptype::LispFn;
 use threadmessage::{EnvToThreadMessage, ThreadToEnvMessage};
 use worker::Worker;
 
-pub struct NumWorkers {
-    pub(crate) num: u32,
+pub enum NumWorkers {
+    Minimum,
+    Custom(u32),
 }
 
 impl NumWorkers {
-    pub fn min() -> Self {
-        Self { num: 1 }
-    }
-    pub fn new(num: u32) -> Self {
-        assert!(num >= 1);
-        Self { num }
+    pub(crate) fn get_val(&self) -> u32 {
+        if let Self::Custom(num) = self {
+            assert!(num >= &1);
+            *num
+        } else {
+            1
+        }
     }
 }
 
@@ -40,7 +42,7 @@ impl LispEnvironment {
             functions: HashMap::new(),
             com_server: ComServer::new(),
             workers: vec![],
-            num_workers: num_workers.num,
+            num_workers: num_workers.get_val(),
         }
     }
 
@@ -52,11 +54,13 @@ impl LispEnvironment {
         self.globals.get(&name.to_string()).cloned()
     }
 
-    pub fn run(&mut self, init_fn: impl ToString) {
+    pub fn setup(&mut self) {
         for _ in 0..self.num_workers {
             self.workers.push(Worker::new(self.com_server.new_client()));
         }
+    }
 
+    pub fn run(&mut self, init_fn: impl ToString) {
         loop {
             let msg = self.com_server.recv();
 

@@ -3,8 +3,8 @@ use lisperror::LispError;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct LispObject {
-    quoted: bool,
-    value: LispValue,
+    pub quoted: bool,
+    pub value: LispValue,
 }
 
 impl LispObject {

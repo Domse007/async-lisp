@@ -11,3 +11,17 @@ pub enum LispValue {
     String(String),
     Nil,
 }
+
+impl LispValue {
+    pub fn get_type_str(&self) -> &'static str {
+        match self {
+            Self::Cons(_) => "cons",
+            Self::List(_) => "list",
+            Self::Number(_) => "number",
+            Self::Error(_) => "error",
+            Self::Symbol(_) => "symbol",
+            Self::String(_) => "string",
+            Self::Nil => "nil",
+        }
+    }
+}
