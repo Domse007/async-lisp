@@ -1,13 +1,13 @@
-use crate::lisptype::LispType;
+use crate::lisptype::LispObject;
 
 #[derive(Clone, Debug)]
 pub struct LispFn {
-    params: LispType,
-    body: LispType,
+    params: LispObject,
+    body: LispObject,
 }
 
 impl LispFn {
-    pub fn new(params: LispType, body: LispType) -> Self {
+    pub fn new(params: LispObject, body: LispObject) -> Self {
         Self { params, body }
     }
 }

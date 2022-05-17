@@ -2,18 +2,18 @@ use crate::lispvalue::LispValue;
 use lisperror::LispError;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub struct LispType {
+pub struct LispObject {
     quoted: bool,
     value: LispValue,
 }
 
-impl LispType {
+impl LispObject {
     pub fn quote(mut self) -> Self {
         self.quoted = true;
         self
     }
 
-    pub fn cons(val1: LispType, val2: LispType) -> Self {
+    pub fn cons(val1: LispObject, val2: LispObject) -> Self {
         Self {
             quoted: false,
             value: LispValue::Cons(Box::new((val1, val2))),
@@ -34,17 +34,24 @@ impl LispType {
         }
     }
 
-    pub fn symbol<T: ToString>(sym: T) -> Self {
+    pub fn symbol(sym: impl ToString) -> Self {
         Self {
             quoted: false,
             value: LispValue::Symbol(sym.to_string()),
         }
     }
 
-    pub fn list(list: &[LispType]) -> Self {
+    pub fn list(list: &[LispObject]) -> Self {
         Self {
             quoted: false,
             value: LispValue::List(list.into()),
+        }
+    }
+
+    pub fn string(str: impl ToString) -> Self {
+        Self {
+            quoted: false,
+            value: LispValue::String(str.to_string()),
         }
     }
 

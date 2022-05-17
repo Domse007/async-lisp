@@ -1,10 +1,11 @@
 mod messages;
 
 use std::collections::HashMap;
-use std::sync::mpsc::{self, channel, Receiver, Sender, TryRecvError};
+use std::sync::mpsc::{self, Receiver, Sender};
 
 use messages::{ClientMessage, ServerMessage};
 
+#[derive(Debug)]
 pub struct ComServer<T, U> {
     thread_index: u32,
     senders: HashMap<u32, Sender<T>>,

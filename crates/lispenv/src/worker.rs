@@ -5,6 +5,7 @@ use bidirchannel::ComClient;
 use crate::threadfun;
 use crate::threadmessage::{EnvToThreadMessage, ThreadToEnvMessage};
 
+#[derive(Debug)]
 pub struct Worker {
     handle: JoinHandle<()>,
     working: bool,

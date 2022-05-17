@@ -5,7 +5,7 @@ mod worker;
 use std::collections::HashMap;
 
 use bidirchannel::ComServer;
-use lisptype::lisptype::LispType;
+use lisptype::lisptype::LispObject;
 use lisptype::LispFn;
 use threadmessage::{EnvToThreadMessage, ThreadToEnvMessage};
 use worker::Worker;
@@ -24,8 +24,9 @@ impl NumWorkers {
     }
 }
 
+#[derive(Debug)]
 pub struct LispEnvironment {
-    globals: HashMap<String, LispType>,
+    globals: HashMap<String, LispObject>,
     functions: HashMap<String, LispFn>,
     com_server: ComServer<EnvToThreadMessage, ThreadToEnvMessage>,
     workers: Vec<Worker>,
@@ -43,15 +44,15 @@ impl LispEnvironment {
         }
     }
 
-    pub fn add_global<T: ToString>(&mut self, name: T, val: LispType) {
+    pub fn add_global(&mut self, name: impl ToString, val: LispObject) {
         self.globals.insert(name.to_string(), val);
     }
 
-    pub fn get_global<T: ToString>(&self, name: T) -> Option<LispType> {
+    pub fn get_global(&self, name: impl ToString) -> Option<LispObject> {
         self.globals.get(&name.to_string()).cloned()
     }
 
-    pub fn run<T: ToString>(&mut self, init_fn: T) {
+    pub fn run(&mut self, init_fn: impl ToString) {
         for _ in 0..self.num_workers {
             self.workers.push(Worker::new(self.com_server.new_client()));
         }
